@@ -15,40 +15,6 @@ jobs:
     - name: Ekstrak File ZIP
       run: unzip nes-emulator.zip -d project_folder 
     
-    - name: Jurus Pamungkas (Injeksi JS Anti Blokir & Fix Layar Transparan)
-      run: |
-        python -c '
-        import os, urllib.request
-        
-        # Link CDNJS yang paling stabil, ditambah penyamaran (User-Agent)
-        url = "https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.0/jsnes.min.js"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        js_code = urllib.request.urlopen(req).read().decode("utf-8")
-        
-        # Cari file index.html
-        html_path = None
-        for root, dirs, files in os.walk("project_folder"):
-            if "index.html" in files:
-                html_path = os.path.join(root, "index.html")
-                break
-                
-        if html_path:
-            with open(html_path, "r", encoding="utf-8") as f:
-                html = f.read()
-            
-            # 1. Suntik JSNES ke dalam HTML agar lolos blokir Android
-            html = html.replace("<script src=\"jsnes.min.js\"></script>", f"<script>\n{js_code}\n</script>")
-            
-            # 2. FIX LAYAR HITAM: Paksa Alpha Channel (Transparansi) jadi 255 (Solid)
-            html = html.replace("data[i * 4 + 2] = pixel & 0xFF;", "data[i * 4 + 2] = pixel & 0xFF;\n          data[i * 4 + 3] = 255;")
-            
-            with open(html_path, "w", encoding="utf-8") as f:
-                f.write(html)
-        '
-        
-        # 3. Paksa Kotlin agar Base64 lurus tanpa Enter (Mencegah JS Crash)
-        find project_folder -name "*.kt" -exec sed -i "s/Base64\.DEFAULT/Base64.NO_WRAP/g" {} +
-        
     - name: Akali File Tersembunyi yang Hilang
       run: |
         cd project_folder
