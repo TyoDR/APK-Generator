@@ -17,8 +17,9 @@ jobs:
     
     - name: Download Mesin JSNES Otomatis
       run: |
+        # Mencari folder assets dan mendownload jsnes.min.js versi 1.2.0 (Stabil)
         ASSETS_DIR=$(find project_folder -type d -name "assets" | head -n 1)
-        curl -L -o "$ASSETS_DIR/jsnes.min.js" https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.1/jsnes.min.js
+        curl -L -o "$ASSETS_DIR/jsnes.min.js" https://cdn.jsdelivr.net/npm/jsnes@1.2.0/dist/jsnes.min.js
 
     - name: Akali File Tersembunyi yang Hilang
       run: |
