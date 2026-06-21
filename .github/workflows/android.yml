@@ -1,0 +1,46 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Ekstrak File ZIP
+      # Ganti 'nes-emulator.zip' dengan nama file zip yang kamu upload
+      run: unzip nes-emulator.zip -d project_folder 
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Buat Gradle Wrapper & Berikan Izin
+      run: |
+        cd project_folder
+        gradle wrapper
+        chmod +x gradlew
+
+    - name: Hapus Aturan Keystore yang Error
+      run: |
+        cd project_folder
+        sed -i 's/signingConfig =/\/\/ signingConfig =/g' app/build.gradle.kts
+
+    - name: Build APK dengan Gradle
+      run: |
+        cd project_folder
+        ./gradlew assembleDebug
+
+    - name: Upload APK Hasil Build
+      uses: actions/upload-artifact@v4
+      with:
+        # Ganti nama ini sesukamu untuk hasil download APK-nya nanti
+        name: NES-Emulator-App 
+        path: project_folder/app/build/outputs/apk/debug/app-debug.apk
