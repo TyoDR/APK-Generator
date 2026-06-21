@@ -17,10 +17,14 @@ jobs:
     
     - name: Download Mesin JSNES Otomatis
       run: |
-        # Robot server GitHub yang akan mencari folder assets 
-        # dan otomatis mendownload file jsnes.min.js ke dalamnya!
         ASSETS_DIR=$(find project_folder -type d -name "assets" | head -n 1)
         curl -L -o "$ASSETS_DIR/jsnes.min.js" https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.1/jsnes.min.js
+
+    - name: Akali File Tersembunyi yang Hilang
+      run: |
+        cd project_folder
+        touch .env.example
+        touch .env
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
