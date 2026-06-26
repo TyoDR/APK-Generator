@@ -1,4 +1,4 @@
-name: Android CI
+name: Android CI (Release Version)
 
 on:
   push:
@@ -18,8 +18,8 @@ jobs:
     - name: Akali File Tersembunyi yang Hilang
       run: |
         cd project_folder
-        touch .env.example
-        touch .env
+        touch .env.example || true
+        touch .env || true
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -33,18 +33,30 @@ jobs:
         gradle wrapper
         chmod +x gradlew
 
-    - name: Hapus Aturan Keystore yang Error
+    - name: Hapus Aturan Keystore yang Error (Jika Ada)
       run: |
         cd project_folder
         sed -i "s/signingConfig =/\/\/ signingConfig =/g" app/build.gradle.kts || true
 
-    - name: Build APK dengan Gradle
+    - name: Build APK Versi Release (Ukuran Kecil)
       run: |
         cd project_folder
-        ./gradlew assembleDebug
+        ./gradlew assembleRelease
+
+    - name: Tanda Tangan Digital (Keystore Otomatis)
+      run: |
+        cd project_folder
+        # Membuat sertifikat Keystore eksklusif
+        keytool -genkey -v -keystore temp-key.keystore -alias tyo_alias -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=TyoDR, OU=Developer, O=TyoDR, L=Klaten, ST=Jawa Tengah, C=ID" -storepass password123 -keypass password123
+        
+        # Mencari alat apksigner dari Android SDK di server GitHub
+        APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name "apksigner" | sort -r | head -n 1)
+        
+        # Menandatangani file APK release
+        $APKSIGNER sign --ks temp-key.keystore --ks-pass pass:password123 --ks-key-alias tyo_alias --in app/build/outputs/apk/release/app-release-unsigned.apk --out app/build/outputs/apk/release/TyoDR-App.apk
 
     - name: Upload APK Hasil Build
       uses: actions/upload-artifact@v4
       with:
-        name: TyoDR-Portfolio-App 
-        path: project_folder/app/build/outputs/apk/debug/app-debug.apk
+        name: TyoDR-App
+        path: project_folder/app/build/outputs/apk/release/TyoDR-App.apk
